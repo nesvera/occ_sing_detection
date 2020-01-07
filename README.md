@@ -2,13 +2,26 @@ REMEMBER:
     - The image used as input for input must be in RGB colorspace
     - The bounding boxes are represented in fractional format ([0,1]) in the train phases
     - The bounding boxes are represented in normal values in the annotation file ([0,width])
+    - There is a main folder to keep all the labeled records
 
 How to install:
 
-How to install application to label dataset:
+1. Clone repo
 
-    - Update the git repo inside this repo
-    - Follow the installation steps presented by the repository
+2. Pull submodules (labelImg)
+
+    git submodule update --init --recursive
+
+3. Install requirements
+
+3.1. Install environment
+
+3.2. Install labelImg
+
+    workon pytorch
+    sudo apt-get install pyqt5-dev-tools
+    pip install -r requirements/requirements-linux-python3.txt
+    make qt5py3
 
 How to prepare a dataset:
 
@@ -16,8 +29,8 @@ How to prepare a dataset:
 
 2. Convert the video to images
 
-    python utils/video_to_images.py -i [VIDEO_PATH] -o [OUTPUT_PATH] -f [FPS]
-    python utils/video_to_images.py -i dataset/footages/training03.avi -o dataset/raw_dataset/ -f 10
+    python convert_video_to_images.py --video [VIDEO_PATH] --output [OUTPUT_PATH] --freq [FPS]
+    python convert_video_to_images.py --video data/footages/bosch19_04.avi --output data/raw_dataset --freq 10
 
     This script will create a folder tree like:
     - run_day-month-year_hour-minute
@@ -41,7 +54,7 @@ How to prepare a dataset:
 4. Open labelImg:
     
     python3 labelImg/labelImg.py [IMAGE_PATH] dataset/data/labelimg_classes.txt
-    python labelImg/labelImg.py dataset/raw_dataset/run_04-09-19_20-35/ dataset/config/labelimg_classes.txt
+    python labelImg/labelImg.py data/raw_dataset/run_04-09-19_20-35/ data/config/occ_traffic.names
 
 5. Configure labelImg:
 5.1. Change path to save the labels:
@@ -73,6 +86,18 @@ How to prepare a dataset:
    Run the script below inside de dataset main folder, where all the labeld records were placed.
 
    python show_dataset_distribuition.py --in_folder /path/to/main/dataset/folder
+   python show_dataset_distribuition.py --in_folder data/raw_dataset/
+
+9. Split label image in N regions
+    - Currently split in 3 regions with overlap
+
+    Check parameters in configuration file
+    /data/config/preprocessing.yml
+
+    Preprocess:
+    python dataset_preprocessing.py --in_folder data/raw_dataset --out_folder ./data/dataset/teste --config data/config/preprocessing.yml --debug 0 --save 1
+
+    It is possible to visualize the output of this process enabling debug and disabling save (--debug 1 --save 0)
 
 How to train:
 

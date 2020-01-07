@@ -6,15 +6,15 @@ import argparse
 if __name__ == "__main__":
     
     parser = argparse.ArgumentParser(description='Convert videos in a sequence of images')
-    parser.add_argument('-i',
+    parser.add_argument('--video',
                         dest='input_video_path',
                         required=True,
                         help='Path to the folder with recorded videos')
-    parser.add_argument('-o',
+    parser.add_argument('--output',
                         dest='output_folder',
                         required=True,
                         help='Path to the folder that will receive folders with images')
-    parser.add_argument('-f',
+    parser.add_argument('--freq',
                         dest='output_fps',
                         required=False,
                         default=10,

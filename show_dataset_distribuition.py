@@ -3,7 +3,6 @@ import os
 import cv2
 import argparse
 import xml.etree.ElementTree as ET
-from data.config import classes
 import numpy as np
 import json
 import yaml

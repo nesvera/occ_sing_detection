@@ -1,7 +1,23 @@
 '''
 Labels from each class to be detected
 '''
+
 sign_labels = ('speed_limit_begin',
+               'speed_limit_end',
+               'crosswalk',
+               'parking_zone',
+               'expressway_begin',
+               'expressway_end',
+               'barred_area',
+               'pedestrian_island',
+               'intersection_stop',
+               'intersection_yield',
+               'intersection_right',
+               'intersection_left',
+               'no_passing_zone_begin',
+               'pedestrian')
+
+sign_labels_ext = ('speed_limit_begin',
                'speed_limit_end',
                'crosswalk',
                'parking_zone',

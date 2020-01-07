@@ -36,7 +36,6 @@ def main():
 
         boxes = boxes[0][0]
         print(boxes)
-        
 
         images =cv2.rectangle(images, 
                       (int(boxes[0]*widht), int(boxes[1]*height)), 
@@ -45,12 +44,6 @@ def main():
 
         cv2.imshow("image", images)
         cv2.waitKey(0)
-
-
-    #for i, (images, boxes, labels) in enumerate(train_loader):
-
-    #    print(images.size)
-    
 
 
 if __name__ == "__main__":

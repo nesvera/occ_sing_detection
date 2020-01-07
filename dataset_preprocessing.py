@@ -3,10 +3,11 @@ import os
 import cv2
 import argparse
 import xml.etree.ElementTree as ET
-from data.config import classes
 import numpy as np
 import json
 import yaml
+
+from data.config import classes
 
 def main():
     
@@ -125,6 +126,9 @@ def main():
 
                     label = obj.find('name').text.lower().strip()
                     image_labels_list.append(label)
+
+                    if label not in str(classes.sign_labels):
+                        continue
 
                     bb = obj.find('bndbox')
                     # labelImg saves bb between [1, image_size]
