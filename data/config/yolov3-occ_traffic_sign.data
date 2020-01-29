@@ -1,0 +1,5 @@
+classes= 21
+train  = /home/feaf-seat-1/Documents/nesvera/darknet/occ_sign_yolo_dataset/train.txt
+valid  = /home/feaf-seat-1/Documents/nesvera/darknet/occ_sign_yolo_dataset/valid.txt
+names = /home/nesvera/Documents/neural_nets/object_detection/occ_sign_detection/data/config/yolov3-occ_traffic_sign.names
+backup = backup

@@ -60,6 +60,7 @@ if __name__ == "__main__":
         filename = (label.split(".txt")[0]).split("/")[-1]
         image_path = images_folder + "/" + filename + ".png"
         
+        print(image_path)
         image = cv2.imread(image_path)
         
         with open(label, 'r') as label_yolo:
@@ -92,7 +93,7 @@ if __name__ == "__main__":
                            (int(obj_x_center), int(obj_y_center)),
                            cv2.FONT_HERSHEY_SIMPLEX,
                            0.3,
-                           (255, 255, 255),
+                           (0, 0, 255),
                            1)
 
                 label_line = label_yolo.readline()

@@ -1,8 +1,8 @@
 REMEMBER:
-    - The image used as input for input must be in RGB colorspace
-    - The bounding boxes are represented in fractional format ([0,1]) in the train phases
-    - The bounding boxes are represented in normal values in the annotation file ([0,width])
-    - There is a main folder to keep all the labeled records
+    - The image used as input must be in RGB colorspace
+    - Darknet uses bounding boxes in fractional format ([0,1]) 
+    - The annotations from labelImg must be converted to YOLO format
+    - There is a main dataset folder that contains sub-folders with images and annotation of each recorded video
 
 How to install:
 
@@ -16,6 +16,8 @@ How to install:
 
 3.1. Install environment
 
+    https://virtualenvwrapper.readthedocs.io/en/latest/
+
 3.2. Install labelImg
 
     workon pytorch
@@ -25,49 +27,42 @@ How to install:
 
 How to prepare a dataset:
 
-1. Record some footage and save it as run_day-month-year_hour-minute.avi (mp4,avi)
+0. Check if the ".names" file contains the names of all classes that should be detected. This file relates the 
+name of the class to the number used during the training and test phase.
+    - occ_sign_detection/data/config/yolov3-occ_traffic_sign.names
 
-2. Convert the video to images
+1. Record some video
+
+2. Convert the video to images. This script receives the path from a video, and saves the images at a certain
+frame rate. It will create a folder with the name passed as output path.
 
     python convert_video_to_images.py --video [VIDEO_PATH] --output [OUTPUT_PATH] --freq [FPS]
     python convert_video_to_images.py --video data/footages/bosch19_04.avi --output data/raw_dataset --freq 10
 
-    This script will create a folder tree like:
-    - run_day-month-year_hour-minute
+
+    This script creates a FOLDER ("video_set_folder") inside the OUTPUT_PATH:
+    - footage_set_folder
         - images
             - run_day-month-year_hour-minute_1.jpg
             - run_day-month-year_hour-minute_2.jpg
             - run_day-month-year_hour-minute_3.jpg
         - labels
 
-3. Manually, look all images that were converted, and delete images that are:
-    - Repeated
-    - Bad quality
-    - Images without a single object or with objects that far away
-
-    OBS: the remaining images must be labeled, then take care to not leave some bad image here
-
-4. Check the following files to see if all the labels that are going to be used are presented.
-    - file config labelimg
-    - file que tem a conversao de label pra numero
-
-4. Open labelImg:
+3. Open labelImg with the video_set_folder and classes_names:
     
-    python3 labelImg/labelImg.py [IMAGE_PATH] dataset/data/labelimg_classes.txt
-    python labelImg/labelImg.py data/raw_dataset/run_04-09-19_20-35/ data/config/occ_traffic.names
+    python3 labelImg/labelImg.py [IMAGE_PATH] [CLASSES_NAMES_PATH]
+    python labelImg/labelImg.py data/raw_dataset/run_04-09-19_20-35/ data/config/yolov3-occ_traffic_sign.names
 
-5. Configure labelImg:
-5.1. Change path to save the labels:
+4. Configure labelImg:
+4.1. Change the path to save the labels:
     - Click in "Change Save Dir"
-    - Select the "labels" folder inside the folder created by the conversion script
+    - Select the "labels" folder inside the video_set_folder
 
-5.2. Change save format:
+4.2. Change save format:
     - Select "PascalVOC"
 
-6. Label the images
+5. Label images
     You must create a new rectangle box, define the bounding box of the object and select the correct label for it
-
-    OBS: the remaining images must be labeled
 
     Shortcuts/Hotkeys
         - Ctrl + s      = Save
@@ -78,7 +73,7 @@ How to prepare a dataset:
         - Ctrl++        = Zoom in
         - Ctrl--        = Zoom out
 
-7. Place the record folder that was created inside the main dataset folder
+6. Place the video_set_folder folder inside the main dataset folder
 
 8. Check the frequency distribution of the classes inside de dataset. It is NOT recommended to have a big disparity
    of labeled objects between the classes. 
@@ -88,25 +83,74 @@ How to prepare a dataset:
    python show_dataset_distribuition.py --in_folder /path/to/main/dataset/folder
    python show_dataset_distribuition.py --in_folder data/raw_dataset/
 
-9. Split label image in N regions
-    - Currently split in 3 regions with overlap
+9. Convert dataset from VOC format to YOLO format.
+    VOC format has more information about the label, then it is better to keep the original labels in this format
 
-    Check parameters in configuration file
-    /data/config/preprocessing.yml
+    python convert_voc_to_yolo.py --dataset data/raw_dataset --out_folder data/dataset_yolo_format --class_names data/config/yolov3-occ_traffic_sign.names
 
-    Preprocess:
-    python dataset_preprocessing.py --in_folder data/raw_dataset --out_folder ./data/dataset/teste --config data/config/preprocessing.yml --debug 0 --save 1
+10. It is possible to visualize the dataset (just to check)
 
-    It is possible to visualize the output of this process enabling debug and disabling save (--debug 1 --save 0)
+    python view_dataset_yolo.py --dataset data/dataset_yolo_format/ --class_names data/config/yolov3-occ_traffic_sign.names 
 
-How to train:
+11. Copy dataset to the computer that is going to be used to train.
+    
+    scp -r <dataset_folder> <computer_user>@<ip>:<path_to_folder>
 
-1. Configure the config file (e.g asdfjakl) with the crop, dimension, number of crops...
+12. Copy also the script to split the dataset
 
-2. Run script that will split the dataset, and will create the a dataset to be used for training
+    scp split_dataset_yolo.py feaf-seat-1@141.41.32.122:/home/feaf-seat-1/Documents/nesvera/darknet
 
-3. Configure the config file for training, pointing to the dataset address, ...
+13. This script MUST be executed in the computer that is going to be used to train.
+    This must be done in this way, once that darknet uses training files with full path for the images
 
-How to deploy:
+    python split_dataset_yolo.py --dataset <dataset_folder> --train_per <percentage_of_images_train>
+    python split_dataset_yolo.py --dataset ./occ_sign_yolo_dataset/ --train_perc 0.9
 
-1. aaaaaaaaaaaaaaaa
+
+Download darknet:
+
+How to train YOLOV3 from zero:
+
+1. Download Yolo base weights (classifier)
+
+    cd darknet
+    wget https://pjreddie.com/media/files/darknet53.conv.74
+
+2. Modify .data file
+
+    cp cfg/voc.data yolov3_occ_traffic_sign.data
+    nano yolov3_occ_traffic_sign.data
+  
+    classes= n
+    last filters = [4 + 1 + n]*3
+    train  = <path-to-train-dataset>
+    valid  = <path-to-validation-dataset>
+    names = data/occ_traffic_sign.names
+    backup = backup
+
+3. Copy the .cfg from tiny-yolo. Change batch size and subdivisions for training.
+   Change number of classes and filters. The .cfg file must be placed inside the cfg/ folder
+
+    cp cfg/yolov3-tiny.cfg cfg/yolov3-occ-traffic-sign.cfg
+
+    nano cfg/yolov3-occ-traffic-sign.cfg
+
+    # Testing
+    #batch=1
+    #subdivisions=1
+    # Training
+    batch=64
+    subdivisions=4
+
+    in lines 135 and 177, classes = n_classes
+    in lines 127 and 171, filters = [4 + 1 + n_classes]*3
+    
+4. Start training. The weights are going to be saved inside "backup" folder
+    
+    ./darknet detector train <path to .data file> <path to .cfg file> <path to base weights>
+    ./darknet detector train yolov3_occ_traffic_sign.data cfg/yolov3-occ-traffic-sign.cfg weights/darknet53.conv.74 
+
+5. Continue training from a backup
+
+    ./darknet detector train <path to .data file> <path to .cfg file> <path to trained weight>
+    ./darknet detector train yolov3-occ_traffic_sign.data cfg/yolov3-occ-traffic-sign.cfg backup/yolov3-occ-traffic-sign.backup 
